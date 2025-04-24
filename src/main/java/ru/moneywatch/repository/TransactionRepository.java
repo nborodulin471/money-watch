@@ -2,10 +2,46 @@ package ru.moneywatch.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import ru.moneywatch.model.Category;
+import ru.moneywatch.model.StatusOperation;
+import ru.moneywatch.model.TypeTransaction;
 import ru.moneywatch.model.entities.TransactionEntity;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * Репозиторий для работы с транзакциями.
  */
 public interface TransactionRepository extends JpaRepository<TransactionEntity, Long> {
+
+    @Query("""
+        SELECT t FROM TransactionEntity t
+        LEFT JOIN t.receiptAccount ra
+        LEFT JOIN ra.user u
+        WHERE (:status IS NULL OR t.status = :status)
+          AND (:category IS NULL OR t.category = :category)
+          AND (:type IS NULL OR t.typeTransaction = :type)
+          AND (:receiptAccountId IS NULL OR t.receiptAccount.id = :receiptAccountId)
+          AND (:receiptCheckingAccountId IS NULL OR t.recipientCheckingAccount.id = :receiptCheckingAccountId)
+          AND (:fromDate IS NULL OR t.date >= :fromDate)
+          AND (:toDate IS NULL OR t.date <= :toDate)
+          AND (:minSum IS NULL OR t.sum >= :minSum)
+          AND (:maxSum IS NULL OR t.sum <= :maxSum)
+          AND (:inn IS NULL OR u.inn = :inn)
+    """)
+    List<TransactionEntity> filterTransactions(
+            @Param("status") StatusOperation status,
+            @Param("category") Category category,
+            @Param("type") TypeTransaction type,
+            @Param("receiptAccountId") Long receiptAccountId,
+            @Param("receiptCheckingAccountId") Long receiptCheckingAccountId,
+            @Param("fromDate") Date fromDate,
+            @Param("toDate") Date toDate,
+            @Param("minSum") Integer minSum,
+            @Param("maxSum") Integer maxSum,
+            @Param("inn") String inn
+    );
 }
