@@ -4,26 +4,26 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.Data;
 import ru.moneywatch.model.Category;
-import ru.moneywatch.model.PersonType;
 import ru.moneywatch.model.StatusOperation;
 import ru.moneywatch.model.TypeTransaction;
 
 import java.util.Date;
 
 /**
- * Сущность в БД для работы с документами.
+ * Сущность в БД для работы с транзакциями.
  */
 @Data
-@Entity(name = "documents")
-public class DocumentEntity {
+@Entity
+@Table(name = "transactions")
+public class TransactionEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private PersonType personType;
 
     private Date date;
 
@@ -35,16 +35,15 @@ public class DocumentEntity {
 
     private StatusOperation status;
 
-    private String receiptAccount;
+    @ManyToOne
+    private AccountEntity receiptAccount;
 
-    private String receiptBank;
+    @ManyToOne
+    private BankEntity receiptBank;
 
-    private String inn;
-
-    private String recipientCheckingAccount;
+    @ManyToOne
+    private AccountEntity recipientCheckingAccount;
 
     private Category category;
-
-    private String receiptNumber;
 
 }

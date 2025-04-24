@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import lombok.RequiredArgsConstructor;
-import ru.moneywatch.model.dtos.DocumentDto;
-import ru.moneywatch.service.DocumentService;
+import ru.moneywatch.model.dtos.TransactionDto;
+import ru.moneywatch.service.TransactionService;
 
 import java.util.List;
 
@@ -21,33 +21,33 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/api//docs/")
-public class DocumentController {
+public class TransactionController {
 
-    private final DocumentService documentService;
+    private final TransactionService documentService;
 
     @GetMapping
-    public List<DocumentDto> getAllDocuments() {
-        return documentService.getAllDocuments();
+    public List<TransactionDto> getAllDocuments() {
+        return documentService.getAll();
     }
 
     @GetMapping("/{id}")
-    public DocumentDto getDocumentById(@PathVariable Long id) {
-        return documentService.getDocumentById(id);
+    public TransactionDto getDocumentById(@PathVariable Long id) {
+        return documentService.getById(id);
     }
 
     @PostMapping
-    public DocumentDto createDocument(@RequestBody DocumentDto document) {
-        return documentService.createDocument(document);
+    public TransactionDto createDocument(@RequestBody TransactionDto document) {
+        return documentService.create(document);
     }
 
     @PostMapping("/{id}")
-    public DocumentDto editDocument(@PathVariable Long id, @RequestBody DocumentDto document) {
-        return documentService.editDocument(id, document);
+    public TransactionDto editDocument(@PathVariable Long id, @RequestBody TransactionDto document) {
+        return documentService.edit(id, document);
     }
 
     @DeleteMapping
     public void deleteDocumentById(@RequestParam Long id) {
-        documentService.deleteDocumentById(id);
+        documentService.deleteById(id);
     }
 
 }
