@@ -1,6 +1,7 @@
 package ru.moneywatch.model.dtos;
 
 import lombok.Builder;
+import lombok.Getter;
 import ru.moneywatch.model.Category;
 import ru.moneywatch.model.StatusOperation;
 import ru.moneywatch.model.TypeTransaction;

@@ -1,7 +1,14 @@
 package ru.moneywatch.service;
 
+import org.springframework.data.repository.query.Param;
+import org.springframework.http.ResponseEntity;
+import ru.moneywatch.model.Category;
+import ru.moneywatch.model.StatusOperation;
+import ru.moneywatch.model.TypeTransaction;
 import ru.moneywatch.model.dtos.TransactionDto;
+import ru.moneywatch.model.entities.TransactionEntity;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -15,6 +22,20 @@ public interface TransactionService {
     List<TransactionDto> getAll();
 
     /**
+     * Возвращает все транзакции по параметрам поиска.
+     */
+    List<TransactionDto> getAllByFilter(StatusOperation status,
+                                        Category category,
+                                        TypeTransaction type,
+                                        Long receiptAccountId,
+                                        Long receiptCheckingAccountId,
+                                        Date fromDate,
+                                        Date toDate,
+                                        Integer minSum,
+                                        Integer maxSum,
+                                        String inn);
+
+    /**
      * Получает транзакцию по ее ид.
      */
     TransactionDto getById(Long id);
@@ -22,12 +43,12 @@ public interface TransactionService {
     /**
      * Создает транзакцию.
      */
-    TransactionDto create(TransactionDto document);
+    TransactionDto create(TransactionDto transaction);
 
     /**
      * Редактирует транзакцию.
      */
-    TransactionDto edit(Long id, TransactionDto document);
+    ResponseEntity<TransactionEntity> edit(Long id, TransactionDto transaction);
 
     /**
      * Удаляет транзакцию по ее идентификатору.
