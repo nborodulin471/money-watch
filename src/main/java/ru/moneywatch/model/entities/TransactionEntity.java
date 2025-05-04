@@ -7,10 +7,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
-import ru.moneywatch.model.Category;
-import ru.moneywatch.model.StatusOperation;
-import ru.moneywatch.model.TypeTransaction;
+import ru.moneywatch.model.enums.Category;
+import ru.moneywatch.model.enums.StatusOperation;
+import ru.moneywatch.model.enums.TypeTransaction;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -31,7 +32,7 @@ public class TransactionEntity {
 
     private String comment;
 
-    private int sum;
+    private BigDecimal sum;
 
     private StatusOperation status;
 

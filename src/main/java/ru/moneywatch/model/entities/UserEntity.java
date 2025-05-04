@@ -8,7 +8,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import ru.moneywatch.model.PersonType;
+import ru.moneywatch.model.enums.PersonType;
 
 import java.util.List;
 

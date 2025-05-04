@@ -24,16 +24,17 @@ public class TransactionMapper {
         }
 
         return TransactionDto.builder()
-                .id(entity.getId())
                 .date(entity.getDate())
                 .typeTransaction(entity.getTypeTransaction())
                 .comment(entity.getComment())
                 .sum(entity.getSum())
                 .status(entity.getStatus())
-                .receiptAccountId(entity.getReceiptAccount().getId())
-                .receiptBankId(entity.getReceiptBank().getId())
-                .recipientCheckingAccountId(entity.getRecipientCheckingAccount().getId())
+                .recipientAccountId(entity.getReceiptAccount().getId())
+                .recipientBankId(entity.getReceiptBank().getId())
                 .category(entity.getCategory())
+                .senderBankId(entity.getReceiptBank().getId())
+                .account(entity.getReceiptAccount().getId())
+                .recipientInn(Long.parseLong(entity.getReceiptAccount().getUser().getInn()))
                 .build();
     }
 
@@ -43,15 +44,13 @@ public class TransactionMapper {
         }
 
         TransactionEntity entity = new TransactionEntity();
-        entity.setId(dto.id());
         entity.setDate(dto.date());
         entity.setTypeTransaction(dto.typeTransaction());
         entity.setComment(dto.comment());
         entity.setSum(dto.sum());
         entity.setStatus(dto.status());
-        entity.setReceiptAccount(accountRepository.findById(dto.receiptAccountId()).orElseThrow());
-        entity.setReceiptBank(bankRepository.findById(dto.receiptBankId()).orElseThrow());
-        entity.setRecipientCheckingAccount(accountRepository.findById(dto.recipientCheckingAccountId()).orElseThrow());
+        entity.setReceiptAccount(accountRepository.findById(dto.recipientAccountId()).orElseThrow());
+        entity.setReceiptBank(bankRepository.findById(dto.recipientBankId()).orElseThrow());
         entity.setCategory(dto.category());
 
         return entity;

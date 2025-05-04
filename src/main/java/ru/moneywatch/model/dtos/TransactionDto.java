@@ -1,11 +1,16 @@
 package ru.moneywatch.model.dtos;
 
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
-import lombok.Getter;
-import ru.moneywatch.model.Category;
-import ru.moneywatch.model.StatusOperation;
-import ru.moneywatch.model.TypeTransaction;
+import ru.moneywatch.model.enums.Category;
+import ru.moneywatch.model.enums.PersonType;
+import ru.moneywatch.model.enums.StatusOperation;
+import ru.moneywatch.model.enums.TypeTransaction;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -13,15 +18,36 @@ import java.util.Date;
  */
 @Builder
 public record TransactionDto(
-        long id,
+
+        @NotBlank
+        PersonType personType,
+
+        @NotNull
         Date date,
+
+        @NotBlank
         TypeTransaction typeTransaction,
+
         String comment,
-        int sum,
+
+        @Digits(integer = 10, fraction = 5)
+        BigDecimal sum,
+
         StatusOperation status,
-        long receiptAccountId,
-        long receiptBankId,
-        long recipientCheckingAccountId,
+
+        long senderBankId,
+
+        long account,
+
+        long recipientBankId,
+
+        @Pattern(regexp = "\\d{11}")
+        long recipientInn,
+
+        long recipientAccountId,
+
         Category category,
+
+        @Pattern(regexp = "^(8|\\+7)\\d{10}$")
         String receiptNumber) {
 }

@@ -1,4 +1,4 @@
-package ru.moneywatch.model;
+package ru.moneywatch.model.enums;
 
 /**
  * Статус отчета.
