@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import lombok.RequiredArgsConstructor;
-import ru.moneywatch.model.Category;
-import ru.moneywatch.model.StatusOperation;
-import ru.moneywatch.model.TypeTransaction;
+import ru.moneywatch.model.enums.Category;
+import ru.moneywatch.model.enums.StatusOperation;
+import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.model.dtos.TransactionDto;
 import ru.moneywatch.model.entities.TransactionEntity;
 import ru.moneywatch.service.TransactionService;

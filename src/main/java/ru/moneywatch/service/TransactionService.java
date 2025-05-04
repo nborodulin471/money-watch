@@ -1,10 +1,9 @@
 package ru.moneywatch.service;
 
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
-import ru.moneywatch.model.Category;
-import ru.moneywatch.model.StatusOperation;
-import ru.moneywatch.model.TypeTransaction;
+import ru.moneywatch.model.enums.Category;
+import ru.moneywatch.model.enums.StatusOperation;
+import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.model.dtos.TransactionDto;
 import ru.moneywatch.model.entities.TransactionEntity;
 

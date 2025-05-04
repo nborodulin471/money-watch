@@ -4,9 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import ru.moneywatch.model.Category;
-import ru.moneywatch.model.StatusOperation;
-import ru.moneywatch.model.TypeTransaction;
+import ru.moneywatch.model.enums.Category;
+import ru.moneywatch.model.enums.StatusOperation;
+import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.model.entities.TransactionEntity;
 
 import java.util.Date;

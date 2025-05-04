@@ -4,11 +4,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import ru.moneywatch.model.Category;
-import ru.moneywatch.model.StatusOperation;
-import ru.moneywatch.model.TypeTransaction;
+import ru.moneywatch.model.enums.Category;
+import ru.moneywatch.model.enums.StatusOperation;
+import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.model.dtos.TransactionDto;
-import ru.moneywatch.model.entities.BankEntity;
 import ru.moneywatch.model.entities.TransactionEntity;
 import ru.moneywatch.model.mappers.TransactionMapper;
 import ru.moneywatch.repository.AccountRepository;
@@ -91,17 +90,12 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setSum(req.sum());
         transaction.setCategory(req.category());
 
-        Optional.of(req.receiptAccountId())
+        Optional.of(req.recipientAccountId())
                 .map(accountRepository::findById)
                 .flatMap(Function.identity())
                 .ifPresent(transaction::setReceiptAccount);
 
-        Optional.of(req.recipientCheckingAccountId())
-                .map(accountRepository::findById)
-                .flatMap(Function.identity())
-                .ifPresent(transaction::setRecipientCheckingAccount);
-
-        Optional.of(req.receiptBankId())
+        Optional.of(req.recipientBankId())
                 .map(bankRepository::findById)
                 .flatMap(Function.identity())
                 .ifPresent(transaction::setReceiptBank);
