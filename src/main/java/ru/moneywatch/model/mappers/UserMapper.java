@@ -20,7 +20,9 @@ public class UserMapper {
                 user.getUsername(),
                 user.getPassword(),
                 user.isEnabled(),
-                user.getRole()
+                user.getRole(),
+                user.getPersonType(),
+                user.getInn()
         );
     }
 

@@ -2,7 +2,7 @@
 
 * Для запуска требуется запущенная БД postgres. Для этого в docker поднимаем БД с помощью  
 
-    ``docker run --name my-postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=moneywatch -p 5432:5432 -d postgres:latest
+    ``docker run --name moneywatch -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=moneywatch -p 5432:5432 -d postgres:latest
     ``
 
 * Также вам потребуется 21 java. Например, с помощью intelli idea

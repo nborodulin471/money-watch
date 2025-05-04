@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.moneywatch.model.enums.PersonType;
 
 /**
  * Пользователь.
@@ -18,4 +19,6 @@ public final class UserDto {
     private String password;
     private boolean enabled;
     private String role;
+    private PersonType personType;
+    private String inn;
 }
