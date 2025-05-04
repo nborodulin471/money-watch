@@ -1,18 +1,20 @@
 package ru.moneywatch.controller;
 
 
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import lombok.RequiredArgsConstructor;
+import ru.moneywatch.model.AuthenticationRequest;
 import ru.moneywatch.model.dtos.UserDto;
-import ru.moneywatch.model.mappers.UserMapper;
-import ru.moneywatch.repository.UserRepository;
+import ru.moneywatch.service.AuthenticationService;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Контроллер отвечающий за авторизацию и регистрацию.
@@ -24,29 +26,19 @@ import ru.moneywatch.repository.UserRepository;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final UserMapper userMapper;
+    private final AuthenticationService authenticationService;
 
-    @GetMapping("/login")
-    public String showLoginForm() {
-        return "login";
-    }
 
-    @GetMapping("/register")
-    public String showRegistrationForm(Model model) {
-        model.addAttribute("user", new UserDto());
-
-        return "register";
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> login(@RequestBody AuthenticationRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("access_token", authenticationService.login(request.getUsername(), request.getPassword()));
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
-    public String register(@ModelAttribute UserDto user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        var userEntity = userMapper.toEntity(user);
-        userEntity.setEnabled(true);
-        userRepository.save(userEntity);
-
-        return "redirect:/api/auth/login";
+    public ResponseEntity<?> showRegistrationForm(@RequestBody UserDto user) {
+        authenticationService.registerNewUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Аккаунт успешно зарегистрирован.");
     }
 }

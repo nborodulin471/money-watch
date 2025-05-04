@@ -3,7 +3,8 @@ package ru.moneywatch.model.mappers;
 import org.springframework.stereotype.Component;
 
 import ru.moneywatch.model.dtos.UserDto;
-import ru.moneywatch.model.entities.UserEntity;
+import ru.moneywatch.model.entities.Role;
+import ru.moneywatch.model.entities.User;
 
 /**
  * Маппер для пользователей.
@@ -11,31 +12,27 @@ import ru.moneywatch.model.entities.UserEntity;
 @Component
 public class UserMapper {
 
-    public UserDto toDto(UserEntity user) {
+    public UserDto toDto(User user) {
         if (user == null) {
             return null;
         }
         return new UserDto(
-                user.getId(),
                 user.getUsername(),
-                user.getPassword(),
-                user.isEnabled(),
-                user.getRole(),
+                null,
+                user.getRole().name(),
                 user.getPersonType(),
                 user.getInn()
         );
     }
 
-    public UserEntity toEntity(UserDto userDto) {
+    public User toEntity(UserDto userDto) {
         if (userDto == null) {
             return null;
         }
-        UserEntity user = new UserEntity();
-        user.setId(userDto.getId());
+        User user = new User();
         user.setUsername(userDto.getUsername());
         user.setPassword(userDto.getPassword());
-        user.setEnabled(userDto.isEnabled());
-        user.setRole(userDto.getRole());
+        user.setRole(Role.valueOf(userDto.getRole()));
 
         return user;
     }

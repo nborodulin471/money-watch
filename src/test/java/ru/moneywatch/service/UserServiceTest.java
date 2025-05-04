@@ -7,17 +7,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import ru.moneywatch.model.dtos.UserDto;
-import ru.moneywatch.model.entities.UserEntity;
+import ru.moneywatch.model.entities.Role;
+import ru.moneywatch.model.entities.User;
 import ru.moneywatch.model.mappers.UserMapper;
 import ru.moneywatch.repository.UserRepository;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.same;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -42,7 +40,8 @@ class UserServiceTest {
     void testGetExistingUser() {
         // given
         long id = 1L;
-        var expectedUser = new UserEntity();
+        var expectedUser = new User();
+        expectedUser.setRole(Role.ROLE_USER);
         when(userRepository.findById(id)).thenReturn(Optional.of(expectedUser));
 
         // when
@@ -56,12 +55,14 @@ class UserServiceTest {
     void testEditUser() {
         // given
         long id = 1L;
-        var existingUser = new UserEntity(); // инициализация существующего пользователя
-        var updatedUserDto = new UserDto(); // данные для обновления
+        var existingUser = new User();
+        existingUser.setRole(Role.ROLE_USER);
+        var updatedUserDto = new UserDto();
+        updatedUserDto.setRole(Role.ROLE_ADMIN.name());
         when(userRepository.findById(id)).thenReturn(Optional.of(existingUser));
-        when(userRepository.save(any(UserEntity.class))).thenAnswer(i -> i.getArguments()[0]); // возвращаем аргумент
+        when(userRepository.save(any(User.class))).thenAnswer(i -> i.getArguments()[0]); // возвращаем аргумент
 
-        ArgumentCaptor<UserEntity> argumentCaptor = ArgumentCaptor.forClass(UserEntity.class);
+        ArgumentCaptor<User> argumentCaptor = ArgumentCaptor.forClass(User.class);
 
         // when
         UserDto result = userService.edit(id, updatedUserDto);
@@ -75,16 +76,11 @@ class UserServiceTest {
     void testDeleteUser() {
         // given
         long id = 1L;
-        var existingUser = new UserEntity();
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(existingUser));
-        when(userRepository.save(any())).thenReturn(new UserEntity());
 
         // when
         userService.delete(id);
 
         // then
-        verify(userRepository).findById(id);
-        verify(userRepository).save(same(existingUser));
-        assertFalse(existingUser.isEnabled());
+        verify(userRepository).deleteById(id);
     }
 }

@@ -14,10 +14,8 @@ import ru.moneywatch.model.enums.PersonType;
 @NoArgsConstructor
 @AllArgsConstructor
 public final class UserDto {
-    private Long id;
     private String username;
     private String password;
-    private boolean enabled;
     private String role;
     private PersonType personType;
     private String inn;

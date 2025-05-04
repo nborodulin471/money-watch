@@ -23,7 +23,7 @@ public class AccountEntity {
     private String account;
 
     @ManyToOne
-    private UserEntity user;
+    private User user;
 
     @ManyToOne
     private BankEntity bank;
