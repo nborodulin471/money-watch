@@ -44,4 +44,11 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
             @Param("maxSum") Integer maxSum,
             @Param("inn") String inn
     );
+
+    @Query(value = "SELECT EXTRACT(MONTH FROM date) AS month, type_transaction, COUNT(id) " +
+            "FROM transactions " +
+            "GROUP BY month, type_transaction " +
+            "ORDER BY month, type_transaction",
+            nativeQuery = true)
+    List<Object[]> getMonthlyTransactionStatsRaw();
 }

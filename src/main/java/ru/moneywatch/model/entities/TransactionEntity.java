@@ -1,11 +1,6 @@
 package ru.moneywatch.model.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import ru.moneywatch.model.enums.Category;
 import ru.moneywatch.model.enums.StatusOperation;
@@ -28,6 +23,7 @@ public class TransactionEntity {
 
     private Date date;
 
+    @Enumerated(EnumType.STRING)
     private TypeTransaction typeTransaction;
 
     private String comment;
