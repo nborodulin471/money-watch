@@ -56,4 +56,10 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
             "WHERE t.typeTransaction IN ('ADMISSION', 'WRITE_OFF') " +
             "GROUP BY t.typeTransaction")
     List<Object[]> getTransactionStatsByType();
+
+    @Query("SELECT t.category, t.typeTransaction, SUM(t.sum) " +
+            "FROM TransactionEntity t " +
+            "WHERE t.category IS NOT NULL " +
+            "GROUP BY t.category, t.typeTransaction")
+    List<Object[]> getSumsByCategoryAndType();
 }

@@ -11,4 +11,6 @@ public interface PdfReportService {
     byte[] generateCompletedAndReturnTransactionsReport() throws IOException;
 
     byte[] generateTransactionSumReport() throws IOException;
+
+    byte[] generateCategorySummaryReport() throws IOException;
 }

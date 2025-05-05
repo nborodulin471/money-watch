@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.moneywatch.model.dtos.TransactionStatsDto;
 import ru.moneywatch.model.entities.TransactionEntity;
+import ru.moneywatch.model.enums.Category;
 import ru.moneywatch.model.enums.StatusOperation;
 import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.repository.TransactionRepository;
@@ -238,6 +239,83 @@ public class PdfReportServiceImpl implements PdfReportService {
         return out.toByteArray();
     }
 
+    @Override
+    public byte[] generateCategorySummaryReport() throws IOException {
+        // Получаем данные из БД
+        List<Object[]> results = transactionRepository.getSumsByCategoryAndType();
+
+        // Группируем данные по категориям
+        Map<Category, Map<TypeTransaction, BigDecimal>> categoryStats = results.stream()
+                .collect(Collectors.groupingBy(
+                        arr -> (Category) arr[0],
+                        Collectors.toMap(
+                                arr -> (TypeTransaction) arr[1],
+                                arr -> (BigDecimal) arr[2]
+                        )
+                ));
+
+        // Создаем PDF документ
+        Document document = new Document(PageSize.A4.rotate()); // Горизонтальная ориентация
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            document.open();
+
+            // Заголовок отчета
+            Paragraph title = new Paragraph("Report by categories", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20f);
+            document.add(title);
+
+            // Создаем таблицу (Категория, Поступления, Расходы, Итого)
+            PdfPTable table = new PdfPTable(4);
+            table.setWidthPercentage(100);
+            table.setSpacingBefore(10f);
+
+            // Заголовки таблицы
+            addTableHeader(table, "Category", headerFont);
+            addTableHeader(table, "ADMISSIONS", headerFont);
+            addTableHeader(table, "WRITE_OFF", headerFont);
+            addTableHeader(table, "RESULT", headerFont);
+
+            // Заполняем таблицу данными
+            BigDecimal totalAdmission = BigDecimal.ZERO;
+            BigDecimal totalWriteOff = BigDecimal.ZERO;
+
+            for (Category category : categoryStats.keySet()) {
+                Map<TypeTransaction, BigDecimal> typeSums = categoryStats.get(category);
+
+                BigDecimal admission = typeSums.getOrDefault(TypeTransaction.ADMISSION, BigDecimal.ZERO);
+                BigDecimal writeOff = typeSums.getOrDefault(TypeTransaction.WRITE_OFF, BigDecimal.ZERO);
+                BigDecimal total = admission.subtract(writeOff);
+
+                addCategoryRow(table, category.name(),
+                        admission, writeOff, total,
+                        contentFont, headerFont);
+
+                totalAdmission = totalAdmission.add(admission);
+                totalWriteOff = totalWriteOff.add(writeOff);
+            }
+
+            // Итоговая строка
+            addTotalRow(table, "TOTAL",
+                    totalAdmission, totalWriteOff,
+                    totalAdmission.subtract(totalWriteOff),
+                    headerFont);
+
+            document.add(table);
+
+            // Добавляем анализ
+            addAnalysis(document, totalAdmission, totalWriteOff);
+
+        } finally {
+            document.close();
+        }
+
+        return out.toByteArray();
+    }
+
     private void addTableHeader(PdfPTable table, String text, Font font) {
         PdfPCell cell = new PdfPCell(new Phrase(text, font));
         cell.setBackgroundColor(Color.GRAY);
@@ -253,11 +331,67 @@ public class PdfReportServiceImpl implements PdfReportService {
         table.addCell(cell);
     }
 
+    private String formatMoney(BigDecimal amount) {
+        return String.format("%,.2f", amount) + " ₽";
+    }
+
     private void addTableRow(PdfPTable table, String type, TransactionStats stats, Font font) {
         addTableCell(table, type, font);
         addTableCell(table, stats.getCount().toString(), font);
         addTableCell(table, stats.getSum().toString(), font);
     }
+
+    private void addAnalysis(Document document, BigDecimal totalAdmission, BigDecimal totalWriteOff) throws DocumentException {
+
+        Paragraph analysis = new Paragraph();
+        analysis.setSpacingBefore(20f);
+
+        analysis.add(new Chunk("Total admissions: ", headerFont));
+        analysis.add(new Chunk(formatMoney(totalAdmission) + "\n", contentFont));
+
+        analysis.add(new Chunk("Total write-off: ", headerFont));
+        analysis.add(new Chunk(formatMoney(totalWriteOff) + "\n", contentFont));
+
+        BigDecimal balance = totalAdmission.subtract(totalWriteOff);
+        analysis.add(new Chunk("Result balance: ", headerFont));
+        analysis.add(new Chunk(formatMoney(balance), contentFont));
+
+        analysis.setAlignment(Element.ALIGN_CENTER);
+        document.add(analysis);
+    }
+
+    private PdfPCell createCell(String text, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cell.setPadding(5f);
+        return cell;
+    }
+
+    private void addCategoryRow(PdfPTable table, String category,
+                                BigDecimal admission, BigDecimal writeOff,
+                                BigDecimal total, Font contentFont, Font highlightFont) {
+        table.addCell(createCell(category, contentFont));
+        table.addCell(createCell(formatMoney(admission), contentFont));
+        table.addCell(createCell(formatMoney(writeOff), contentFont));
+        table.addCell(createCell(formatMoney(total), highlightFont));
+    }
+
+    private void addTotalRow(PdfPTable table, String label,
+                             BigDecimal totalAdmission, BigDecimal totalWriteOff,
+                             BigDecimal balance, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(label, font));
+        cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        cell.setColspan(1);
+        table.addCell(cell);
+
+        table.addCell(createCell(formatMoney(totalAdmission), font));
+        table.addCell(createCell(formatMoney(totalWriteOff), font));
+
+        cell = new PdfPCell(new Phrase(formatMoney(balance), font));
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.addCell(cell);
+    }
+
 
     @Data
     @AllArgsConstructor

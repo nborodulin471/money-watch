@@ -66,6 +66,16 @@ public class ReportController {
                 .body(pdf);
     }
 
+    @GetMapping("/category-summary")
+    public ResponseEntity<byte[]> getCategorySummaryReport() throws IOException {
+        byte[] pdf = pdfReportService.generateCategorySummaryReport();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=category_summary.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
+
     public List<TransactionStatsDto> getMonthlyStats() {
         List<Object[]> rawStats = transactionRepository.getMonthlyTransactionStatsRaw();
 
