@@ -56,6 +56,16 @@ public class ReportController {
                 .body(pdf);
     }
 
+    @GetMapping("/transaction-sum")
+    public ResponseEntity<byte[]> getTransactionTypesReport() throws IOException {
+        byte[] pdf = pdfReportService.generateTransactionSumReport();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=transaction_types_report.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
+
     public List<TransactionStatsDto> getMonthlyStats() {
         List<Object[]> rawStats = transactionRepository.getMonthlyTransactionStatsRaw();
 

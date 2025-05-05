@@ -2,20 +2,25 @@ package ru.moneywatch.service.impl;
 
 import com.lowagie.text.*;
 import com.lowagie.text.Font;
+import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.moneywatch.model.dtos.TransactionStatsDto;
 import ru.moneywatch.model.entities.TransactionEntity;
 import ru.moneywatch.model.enums.StatusOperation;
+import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.repository.TransactionRepository;
 import ru.moneywatch.service.PdfReportService;
 
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,6 +30,10 @@ import java.util.stream.Collectors;
 public class PdfReportServiceImpl implements PdfReportService {
 
     private final TransactionRepository transactionRepository;
+
+    private final Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
+    private final Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
+    private final Font contentFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
 
     @Override
     public byte[] generateTransactionStatsPdf(List<TransactionStatsDto> stats) throws IOException {
@@ -36,7 +45,6 @@ public class PdfReportServiceImpl implements PdfReportService {
             document.open();
 
             // Заголовок отчета
-            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
             Paragraph title = new Paragraph("Dynamics of transactions by types and months", titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             title.setSpacingAfter(20f);
@@ -48,18 +56,10 @@ public class PdfReportServiceImpl implements PdfReportService {
             table.setSpacingBefore(10f);
             table.setSpacingAfter(10f);
 
-            // Шрифт для заголовков
-            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
-            headerFont.setColor(Color.WHITE);
-
             // Добавление заголовков
             addTableHeader(table, "Month", headerFont);
             addTableHeader(table, "Type transaction", headerFont);
             addTableHeader(table, "Amount", headerFont);
-
-            // Шрифт для данных
-            Font contentFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
-            contentFont.setColor(Color.BLACK);
 
             // Заполнение данными
             for (TransactionStatsDto dto : stats) {
@@ -99,10 +99,6 @@ public class PdfReportServiceImpl implements PdfReportService {
         try {
             PdfWriter.getInstance(document, out);
             document.open();
-
-            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
-            Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
-            Font contentFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
 
             // Заголовок отчета
             Paragraph title = new Paragraph("Transaction report", titleFont);
@@ -152,6 +148,96 @@ public class PdfReportServiceImpl implements PdfReportService {
         return out.toByteArray();
     }
 
+    @Override
+    public byte[] generateTransactionSumReport() throws IOException {
+        // Получаем статистику из БД
+        Map<TypeTransaction, TransactionStats> stats = transactionRepository.getTransactionStatsByType()
+                .stream()
+                .collect(Collectors.toMap(
+                        arr -> (TypeTransaction) arr[0],
+                        arr -> new TransactionStats((Long) arr[1], (BigDecimal) arr[2])
+                ));
+
+        // Создаем PDF документ
+        Document document = new Document(PageSize.A4);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try {
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            // Заголовок отчета
+            Paragraph title = new Paragraph("SUM OF TRANSACTIONS REPORT", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20f);
+            document.add(title);
+
+            // Создаем таблицу (3 колонки)
+            PdfPTable table = new PdfPTable(3);
+            table.setWidthPercentage(80);
+            table.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.setSpacingBefore(10f);
+
+            // Заголовки таблицы
+            addTableCell(table, "Transaction type", headerFont);
+            addTableCell(table, "AMOUNT", headerFont);
+            addTableCell(table, "SUM", headerFont);
+
+            // Данные таблицы
+            BigDecimal admissionSum = stats.getOrDefault(TypeTransaction.ADMISSION,
+                    new TransactionStats(0L, BigDecimal.ZERO)).getSum();
+            BigDecimal writeOffSum = stats.getOrDefault(TypeTransaction.WRITE_OFF,
+                    new TransactionStats(0L, BigDecimal.ZERO)).getSum();
+            BigDecimal difference = admissionSum.subtract(writeOffSum);
+
+            addTableRow(table, "ADMISSION",
+                    stats.getOrDefault(TypeTransaction.ADMISSION,
+                            new TransactionStats(0L, BigDecimal.ZERO)),
+                    contentFont);
+
+            addTableRow(table, "WRITE_OFF",
+                    stats.getOrDefault(TypeTransaction.WRITE_OFF,
+                            new TransactionStats(0L, BigDecimal.ZERO)),
+                    contentFont);
+
+            // Итоговая строка
+            PdfPCell cell = new PdfPCell(new Phrase("RESULT:", contentFont));
+            cell.setColspan(2);
+            cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            cell.setBorder(Rectangle.NO_BORDER);
+            table.addCell(cell);
+
+            cell = new PdfPCell(new Phrase(difference.toString(), contentFont));
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setBorder(Rectangle.NO_BORDER);
+            table.addCell(cell);
+
+            document.add(table);
+
+            // Анализ результатов
+            Paragraph analysis = new Paragraph();
+            analysis.setSpacingBefore(20f);
+
+            if (difference.compareTo(BigDecimal.ZERO) > 0) {
+                analysis.add(new Chunk("Excess of revenue over expenditure: ", contentFont));
+                analysis.add(new Chunk(difference.toString(), contentFont));
+            } else if (difference.compareTo(BigDecimal.ZERO) < 0) {
+                analysis.add(new Chunk("Excess of expenses over receipts: ", contentFont));
+                analysis.add(new Chunk(difference.abs().toString(), contentFont));
+            } else {
+                analysis.add(new Chunk("Income and expenses are equal", contentFont));
+            }
+
+            analysis.setAlignment(Element.ALIGN_CENTER);
+            document.add(analysis);
+
+        } finally {
+            document.close();
+        }
+
+        return out.toByteArray();
+    }
+
     private void addTableHeader(PdfPTable table, String text, Font font) {
         PdfPCell cell = new PdfPCell(new Phrase(text, font));
         cell.setBackgroundColor(Color.GRAY);
@@ -165,5 +251,18 @@ public class PdfReportServiceImpl implements PdfReportService {
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         cell.setPadding(5f);
         table.addCell(cell);
+    }
+
+    private void addTableRow(PdfPTable table, String type, TransactionStats stats, Font font) {
+        addTableCell(table, type, font);
+        addTableCell(table, stats.getCount().toString(), font);
+        addTableCell(table, stats.getSum().toString(), font);
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class TransactionStats {
+        private Long count;
+        private BigDecimal sum;
     }
 }

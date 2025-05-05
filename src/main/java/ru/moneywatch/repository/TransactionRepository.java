@@ -51,4 +51,9 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
             "ORDER BY month, type_transaction",
             nativeQuery = true)
     List<Object[]> getMonthlyTransactionStatsRaw();
+
+    @Query("SELECT t.typeTransaction, COUNT(t), SUM(t.sum) FROM TransactionEntity t " +
+            "WHERE t.typeTransaction IN ('ADMISSION', 'WRITE_OFF') " +
+            "GROUP BY t.typeTransaction")
+    List<Object[]> getTransactionStatsByType();
 }

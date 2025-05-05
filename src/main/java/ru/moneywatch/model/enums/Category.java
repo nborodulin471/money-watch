@@ -5,5 +5,19 @@ package ru.moneywatch.model.enums;
  */
 public enum Category {
 
-    FOOD
+    RESTAURANTS,
+
+    FOOD,
+
+    RENT,
+
+    INTERNET,
+
+    HEALTH,
+
+    SALARY,
+
+    DEPOSITS,
+
+    DIVIDENDS
 }
