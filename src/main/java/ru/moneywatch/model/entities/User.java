@@ -1,15 +1,10 @@
 package ru.moneywatch.model.entities;
 
+import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import ru.moneywatch.model.enums.PersonType;
@@ -30,11 +25,13 @@ public class User implements UserDetails {
 
     private String password;
 
+    @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     private List<TransactionEntity> transactions;
 
+    @Enumerated(EnumType.STRING)
     private PersonType personType;
 
     private String inn;

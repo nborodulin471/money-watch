@@ -30,17 +30,19 @@ public class TransactionEntity {
 
     private BigDecimal sum;
 
+    @Enumerated(EnumType.STRING)
     private StatusOperation status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private AccountEntity receiptAccount;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private BankEntity receiptBank;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private AccountEntity recipientCheckingAccount;
 
+    @Enumerated(EnumType.STRING)
     private Category category;
 
 }

@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface PdfReportService {
     byte[] generateTransactionStatsPdf(List<TransactionStatsDto> stats) throws IOException;
+
+    byte[] generateCompletedAndReturnTransactionsReport() throws IOException;
 }

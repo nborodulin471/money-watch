@@ -12,6 +12,7 @@ import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.repository.TransactionRepository;
 import ru.moneywatch.service.PdfReportService;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,10 +37,23 @@ public class ReportController {
             HttpHeaders headers = new HttpHeaders();
             headers.add("Content-Disposition", "inline; filename=transaction-stats.pdf");
 
-            return ResponseEntity.ok().headers(headers).contentType(MediaType.APPLICATION_PDF).body(pdfBytes);
+            return ResponseEntity.ok()
+                    .headers(headers).
+                    contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfBytes);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @GetMapping("/transaction-amount")
+    public ResponseEntity<byte[]> getTransactionsReport() throws IOException {
+        byte[] pdf = pdfReportService.generateCompletedAndReturnTransactionsReport();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=transactions_report.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 
     public List<TransactionStatsDto> getMonthlyStats() {
