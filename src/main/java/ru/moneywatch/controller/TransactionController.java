@@ -12,11 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import lombok.RequiredArgsConstructor;
+import ru.moneywatch.model.dtos.TransactionDto;
+import ru.moneywatch.model.entities.TransactionEntity;
 import ru.moneywatch.model.enums.Category;
 import ru.moneywatch.model.enums.StatusOperation;
 import ru.moneywatch.model.enums.TypeTransaction;
-import ru.moneywatch.model.dtos.TransactionDto;
-import ru.moneywatch.model.entities.TransactionEntity;
 import ru.moneywatch.service.TransactionService;
 
 import java.util.Date;
@@ -38,7 +38,7 @@ public class TransactionController {
     }
 
     @GetMapping("/filter")
-    public List<TransactionDto> getAllFilterTransactions(
+    public ResponseEntity<List<TransactionDto>> getAllFilterTransactions(
             @RequestParam(required = false) StatusOperation status,
             @RequestParam(required = false) Category category,
             @RequestParam(required = false) TypeTransaction type,
@@ -50,18 +50,20 @@ public class TransactionController {
             @RequestParam(required = false) Integer maxSum,
             @RequestParam(required = false) String inn
     ) {
-        return transactionService.getAllByFilter(status, category, type, receiptAccountId, receiptCheckingAccountId,
-                fromDate, toDate, minSum, maxSum, inn);
+        return ResponseEntity.ok(
+                transactionService.getAllByFilter(status, category, type, receiptAccountId, receiptCheckingAccountId,
+                        fromDate, toDate, minSum, maxSum, inn)
+        );
     }
 
     @GetMapping("/{id}")
-    public TransactionDto getTransactionById(@PathVariable Long id) {
-        return transactionService.getById(id);
+    public ResponseEntity<TransactionDto> getTransactionById(@PathVariable Long id) {
+        return ResponseEntity.ok(transactionService.getById(id));
     }
 
     @PostMapping
-    public TransactionDto createTransaction(@RequestBody TransactionDto transaction) {
-        return transactionService.create(transaction);
+    public ResponseEntity<TransactionDto> createTransaction(@RequestBody TransactionDto transaction) {
+        return ResponseEntity.ok(transactionService.create(transaction));
     }
 
     @PostMapping("/{id}")
