@@ -22,6 +22,7 @@ import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -316,6 +317,109 @@ public class PdfReportServiceImpl implements PdfReportService {
         return out.toByteArray();
     }
 
+    @Override
+    public byte[] generateBankStatsReport() throws IOException {
+        // Получаем данные из БД
+        List<Object[]> senderStats = transactionRepository.getStatsBySenderBank();
+        List<Object[]> recipientStats = transactionRepository.getStatsByRecipientBank();
+
+        // Создаем PDF документ
+        Document document = new Document(PageSize.A4.rotate()); // Горизонтальная ориентация
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try {
+            PdfWriter writer = PdfWriter.getInstance(document, out);
+            document.open();
+
+            // Заголовок отчета
+            Paragraph title = new Paragraph("Statistics on banks", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20f);
+            document.add(title);
+
+            // Раздел по банкам-отправителям
+            Paragraph senderTitle = new Paragraph("Sending banks", contentFont);
+            senderTitle.setSpacingAfter(10f);
+            document.add(senderTitle);
+
+            PdfPTable senderTable = createBankStatsTable(senderStats, headerFont, contentFont);
+            document.add(senderTable);
+
+            // Раздел по банкам-получателям
+            Paragraph recipientTitle = new Paragraph("Recipient banks", contentFont);
+            recipientTitle.setSpacingBefore(20f);
+            recipientTitle.setSpacingAfter(10f);
+            document.add(recipientTitle);
+
+            PdfPTable recipientTable = createBankStatsTable(recipientStats, headerFont, contentFont);
+            document.add(recipientTable);
+
+            // Сравнительный анализ
+            addComparativeAnalysis(document, senderStats, recipientStats, contentFont);
+
+        } finally {
+            document.close();
+        }
+
+        return out.toByteArray();
+    }
+
+    private PdfPTable createBankStatsTable(List<Object[]> stats, Font headerFont, Font contentFont) {
+        PdfPTable table = new PdfPTable(3);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(10f);
+
+        // Заголовки таблицы
+        addTableHeader(table, "Bank", headerFont);
+        addTableHeader(table, "Amount of transactions", headerFont);
+        addTableHeader(table, "Sum of transactions", headerFont);
+
+        // Заполняем таблицу данными
+        for (Object[] row : stats) {
+            String bankName = (String) row[0];
+            Long count = (Long) row[1];
+            BigDecimal sum = (BigDecimal) row[2];
+
+            table.addCell(createCell(bankName, contentFont));
+            table.addCell(createCell(count.toString(), contentFont));
+            table.addCell(createCell(formatMoney(sum), contentFont));
+        }
+
+        // Итоговая строка
+        addTotalRow(table, stats, headerFont);
+
+        return table;
+    }
+
+    private void addComparativeAnalysis(Document document,
+                                        List<Object[]> senderStats,
+                                        List<Object[]> recipientStats,
+                                        Font font) throws DocumentException {
+
+        Paragraph analysis = new Paragraph();
+        analysis.setSpacingBefore(20f);
+
+        // Находим топ-банки
+        String topSender = senderStats.stream()
+                .max(Comparator.comparing(row -> (BigDecimal) row[2]))
+                .map(row -> (String) row[0])
+                .orElse("no data");
+
+        String topRecipient = recipientStats.stream()
+                .max(Comparator.comparing(row -> (BigDecimal) row[2]))
+                .map(row -> (String) row[0])
+                .orElse("no data");
+
+        analysis.add(new Chunk("Analysis: ", font));
+        analysis.add(new Chunk("• The largest volume of outgoing payments: ", font));
+        analysis.add(new Chunk(topSender + "\n", font));
+        analysis.add(new Chunk("• The largest volume of incoming payments: ", font));
+        analysis.add(new Chunk(topRecipient + "\n", font));
+
+        analysis.setAlignment(Element.ALIGN_LEFT);
+        document.add(analysis);
+    }
+
     private void addTableHeader(PdfPTable table, String text, Font font) {
         PdfPCell cell = new PdfPCell(new Phrase(text, font));
         cell.setBackgroundColor(Color.GRAY);
@@ -392,6 +496,20 @@ public class PdfReportServiceImpl implements PdfReportService {
         table.addCell(cell);
     }
 
+    private void addTotalRow(PdfPTable table, List<Object[]> stats, Font font) {
+        BigDecimal totalSum = stats.stream()
+                .map(row -> (BigDecimal) row[2])
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        PdfPCell cell = new PdfPCell(new Phrase("Result:", font));
+        cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        cell.setColspan(2);
+        table.addCell(cell);
+
+        cell = new PdfPCell(new Phrase(formatMoney(totalSum), font));
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.addCell(cell);
+    }
 
     @Data
     @AllArgsConstructor

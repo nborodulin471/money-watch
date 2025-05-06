@@ -62,4 +62,16 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
             "WHERE t.category IS NOT NULL " +
             "GROUP BY t.category, t.typeTransaction")
     List<Object[]> getSumsByCategoryAndType();
+
+    // Статистика по банкам-отправителям
+    @Query("SELECT b.name, COUNT(t), SUM(t.sum) " +
+            "FROM TransactionEntity t JOIN t.receiptBank b " +
+            "GROUP BY b.name")
+    List<Object[]> getStatsBySenderBank();
+
+    // Статистика по банкам-получателям
+    @Query("SELECT b.name, COUNT(t), SUM(t.sum) " +
+            "FROM TransactionEntity t JOIN t.recipientCheckingAccount a JOIN a.bank b " +
+            "GROUP BY b.name")
+    List<Object[]> getStatsByRecipientBank();
 }

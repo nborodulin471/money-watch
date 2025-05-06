@@ -91,4 +91,14 @@ public class ReportController {
 
         return result;
     }
+
+    @GetMapping("/bank-stats")
+    public ResponseEntity<byte[]> getBankStatsReport() throws IOException {
+        byte[] pdf = pdfReportService.generateBankStatsReport();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bank_statistics.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
 }

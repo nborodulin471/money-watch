@@ -13,4 +13,6 @@ public interface PdfReportService {
     byte[] generateTransactionSumReport() throws IOException;
 
     byte[] generateCategorySummaryReport() throws IOException;
+
+    byte[] generateBankStatsReport() throws IOException;
 }
