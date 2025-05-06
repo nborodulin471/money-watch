@@ -44,7 +44,7 @@ public class TransactionMapper {
         entity.setComment(dto.comment());
         entity.setSum(dto.sum());
         entity.setStatus(dto.status());
-        entity.setUserAccount(accountRepository.findById(dto.bankAccountId()).orElseThrow());
+        entity.setUserAccount(accountRepository.findById(dto.userAccountId()).orElseThrow());
         entity.setBankAccount(accountRepository.findById(dto.bankAccountId()).orElseThrow());
         entity.setCategory(dto.category());
 
