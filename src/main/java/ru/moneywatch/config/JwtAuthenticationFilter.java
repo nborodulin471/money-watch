@@ -14,8 +14,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import ru.moneywatch.service.JwtTokenProvider;
-import ru.moneywatch.service.UserService;
+import ru.moneywatch.service.auth.JwtTokenProvider;
+import ru.moneywatch.service.auth.UserService;
 
 import java.io.IOException;
 

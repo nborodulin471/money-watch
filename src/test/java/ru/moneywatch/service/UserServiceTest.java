@@ -11,6 +11,7 @@ import ru.moneywatch.model.entities.Role;
 import ru.moneywatch.model.entities.User;
 import ru.moneywatch.model.mappers.UserMapper;
 import ru.moneywatch.repository.UserRepository;
+import ru.moneywatch.service.auth.UserService;
 
 import java.util.Optional;
 

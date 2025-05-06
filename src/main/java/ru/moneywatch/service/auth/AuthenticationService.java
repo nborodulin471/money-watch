@@ -1,4 +1,4 @@
-package ru.moneywatch.service;
+package ru.moneywatch.service.auth;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

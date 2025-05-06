@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import ru.moneywatch.model.dtos.UserDto;
-import ru.moneywatch.service.UserService;
+import ru.moneywatch.service.auth.UserService;
 
 @RestController
 @RequestMapping("/api/auth/profile")

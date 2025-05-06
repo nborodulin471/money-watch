@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import lombok.RequiredArgsConstructor;
 import ru.moneywatch.model.AuthenticationRequest;
 import ru.moneywatch.model.dtos.UserDto;
-import ru.moneywatch.service.AuthenticationService;
+import ru.moneywatch.service.auth.AuthenticationService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,7 +27,6 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthenticationService authenticationService;
-
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody AuthenticationRequest request) {
