@@ -4,21 +4,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import ru.moneywatch.model.dtos.TransactionDto;
+import ru.moneywatch.model.entities.TransactionEntity;
 import ru.moneywatch.model.enums.Category;
 import ru.moneywatch.model.enums.StatusOperation;
 import ru.moneywatch.model.enums.TypeTransaction;
-import ru.moneywatch.model.dtos.TransactionDto;
-import ru.moneywatch.model.entities.TransactionEntity;
 import ru.moneywatch.model.mappers.TransactionMapper;
 import ru.moneywatch.repository.AccountRepository;
-import ru.moneywatch.repository.BankRepository;
 import ru.moneywatch.repository.TransactionRepository;
 import ru.moneywatch.service.TransactionService;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * Реализация сервиса для работы с транзакциями.
@@ -29,7 +26,6 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
-    private final BankRepository bankRepository;
     private final TransactionMapper transactionMapper;
 
     @Override
@@ -89,16 +85,8 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setComment(req.comment());
         transaction.setSum(req.sum());
         transaction.setCategory(req.category());
-
-        Optional.of(req.recipientAccountId())
-                .map(accountRepository::findById)
-                .flatMap(Function.identity())
-                .ifPresent(transaction::setReceiptAccount);
-
-        Optional.of(req.recipientBankId())
-                .map(bankRepository::findById)
-                .flatMap(Function.identity())
-                .ifPresent(transaction::setReceiptBank);
+        transaction.setBankAccount(accountRepository.findById(req.bankAccountId()).orElseThrow());
+        transaction.setUserAccount(accountRepository.findById(req.userAccountId()).orElseThrow());
 
         return transaction;
     }

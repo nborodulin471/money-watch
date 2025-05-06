@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import ru.moneywatch.model.dtos.TransactionDto;
 import ru.moneywatch.model.entities.TransactionEntity;
 import ru.moneywatch.repository.AccountRepository;
-import ru.moneywatch.repository.BankRepository;
 
 /**
  * Маппер для транзакций.
@@ -16,7 +15,6 @@ import ru.moneywatch.repository.BankRepository;
 public class TransactionMapper {
 
     private final AccountRepository accountRepository;
-    private final BankRepository bankRepository;
 
     public TransactionDto toDto(TransactionEntity entity) {
         if (entity == null) {
@@ -29,12 +27,9 @@ public class TransactionMapper {
                 .comment(entity.getComment())
                 .sum(entity.getSum())
                 .status(entity.getStatus())
-                .recipientAccountId(entity.getReceiptAccount().getId())
-                .recipientBankId(entity.getReceiptBank().getId())
+                .userAccountId(entity.getUserAccount().getId())
+                .bankAccountId(entity.getBankAccount().getId())
                 .category(entity.getCategory())
-                .senderBankId(entity.getReceiptBank().getId())
-                .account(entity.getReceiptAccount().getId())
-                .recipientInn(Long.parseLong(entity.getReceiptAccount().getUser().getInn()))
                 .build();
     }
 
@@ -49,8 +44,8 @@ public class TransactionMapper {
         entity.setComment(dto.comment());
         entity.setSum(dto.sum());
         entity.setStatus(dto.status());
-        entity.setReceiptAccount(accountRepository.findById(dto.recipientAccountId()).orElseThrow());
-        entity.setReceiptBank(bankRepository.findById(dto.recipientBankId()).orElseThrow());
+        entity.setUserAccount(accountRepository.findById(dto.bankAccountId()).orElseThrow());
+        entity.setBankAccount(accountRepository.findById(dto.bankAccountId()).orElseThrow());
         entity.setCategory(dto.category());
 
         return entity;

@@ -34,13 +34,10 @@ public class TransactionEntity {
     private StatusOperation status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private AccountEntity receiptAccount;
+    private AccountEntity userAccount;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private BankEntity receiptBank;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    private AccountEntity recipientCheckingAccount;
+    private AccountEntity bankAccount;
 
     @Enumerated(EnumType.STRING)
     private Category category;

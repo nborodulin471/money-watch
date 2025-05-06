@@ -19,13 +19,13 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
 
     @Query("""
         SELECT t FROM TransactionEntity t
-        LEFT JOIN t.receiptAccount ra
+        LEFT JOIN t.bankAccount ra
         LEFT JOIN ra.user u
         WHERE (:status IS NULL OR t.status = :status)
           AND (:category IS NULL OR t.category = :category)
           AND (:type IS NULL OR t.typeTransaction = :type)
-          AND (:receiptAccountId IS NULL OR t.receiptAccount.id = :receiptAccountId)
-          AND (:receiptCheckingAccountId IS NULL OR t.recipientCheckingAccount.id = :receiptCheckingAccountId)
+          AND (:receiptAccountId IS NULL OR t.userAccount.id = :receiptAccountId)
+          AND (:receiptCheckingAccountId IS NULL OR t.bankAccount.id = :receiptCheckingAccountId)
           AND (:fromDate IS NULL OR t.date >= :fromDate)
           AND (:toDate IS NULL OR t.date <= :toDate)
           AND (:minSum IS NULL OR t.sum >= :minSum)
@@ -36,8 +36,8 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
             @Param("status") StatusOperation status,
             @Param("category") Category category,
             @Param("type") TypeTransaction type,
-            @Param("receiptAccountId") Long receiptAccountId,
-            @Param("receiptCheckingAccountId") Long receiptCheckingAccountId,
+            @Param("userAccountId") Long userAccountId,
+            @Param("bankAccountId") Long bankAccountId,
             @Param("fromDate") Date fromDate,
             @Param("toDate") Date toDate,
             @Param("minSum") Integer minSum,
@@ -65,13 +65,13 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
 
     // Статистика по банкам-отправителям
     @Query("SELECT b.name, COUNT(t), SUM(t.sum) " +
-            "FROM TransactionEntity t JOIN t.receiptBank b " +
+            "FROM TransactionEntity t JOIN t.bankAccount.bank b " +
             "GROUP BY b.name")
     List<Object[]> getStatsBySenderBank();
 
     // Статистика по банкам-получателям
     @Query("SELECT b.name, COUNT(t), SUM(t.sum) " +
-            "FROM TransactionEntity t JOIN t.recipientCheckingAccount a JOIN a.bank b " +
+            "FROM TransactionEntity t JOIN t.bankAccount a JOIN a.bank b " +
             "GROUP BY b.name")
     List<Object[]> getStatsByRecipientBank();
 }

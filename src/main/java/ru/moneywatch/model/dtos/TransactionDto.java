@@ -3,10 +3,8 @@ package ru.moneywatch.model.dtos;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import ru.moneywatch.model.enums.Category;
-import ru.moneywatch.model.enums.PersonType;
 import ru.moneywatch.model.enums.StatusOperation;
 import ru.moneywatch.model.enums.TypeTransaction;
 
@@ -18,10 +16,6 @@ import java.util.Date;
  */
 @Builder
 public record TransactionDto(
-
-        @NotBlank
-        PersonType personType,
-
         @NotNull
         Date date,
 
@@ -35,19 +29,9 @@ public record TransactionDto(
 
         StatusOperation status,
 
-        long senderBankId,
+        long userAccountId,
 
-        long account,
+        long bankAccountId,
 
-        long recipientBankId,
-
-        @Pattern(regexp = "\\d{11}")
-        long recipientInn,
-
-        long recipientAccountId,
-
-        Category category,
-
-        @Pattern(regexp = "^(8|\\+7)\\d{10}$")
-        String receiptNumber) {
+        Category category) {
 }
