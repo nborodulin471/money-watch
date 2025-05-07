@@ -1,13 +1,10 @@
 package ru.moneywatch.service;
 
 import org.springframework.http.ResponseEntity;
-import ru.moneywatch.model.enums.Category;
-import ru.moneywatch.model.enums.StatusOperation;
-import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.model.dtos.TransactionDto;
 import ru.moneywatch.model.entities.TransactionEntity;
+import ru.moneywatch.util.TransactionFilter;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -23,16 +20,7 @@ public interface TransactionService {
     /**
      * Возвращает все транзакции по параметрам поиска.
      */
-    List<TransactionDto> getAllByFilter(StatusOperation status,
-                                        Category category,
-                                        TypeTransaction type,
-                                        Long receiptAccountId,
-                                        Long receiptCheckingAccountId,
-                                        Date fromDate,
-                                        Date toDate,
-                                        Integer minSum,
-                                        Integer maxSum,
-                                        String inn);
+    List<TransactionDto> filterTransactions(TransactionFilter filter);
 
     /**
      * Получает транзакцию по ее ид.

@@ -6,15 +6,13 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import ru.moneywatch.model.dtos.TransactionDto;
 import ru.moneywatch.model.entities.TransactionEntity;
-import ru.moneywatch.model.enums.Category;
-import ru.moneywatch.model.enums.StatusOperation;
-import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.model.mappers.TransactionMapper;
 import ru.moneywatch.repository.AccountRepository;
 import ru.moneywatch.repository.TransactionRepository;
 import ru.moneywatch.service.TransactionService;
+import ru.moneywatch.util.TransactionFilter;
+import ru.moneywatch.util.TransactionSpecification;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -36,18 +34,8 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public List<TransactionDto> getAllByFilter(StatusOperation status,
-                                               Category category,
-                                               TypeTransaction type,
-                                               Long receiptAccountId,
-                                               Long receiptCheckingAccountId,
-                                               Date fromDate,
-                                               Date toDate,
-                                               Integer minSum,
-                                               Integer maxSum,
-                                               String inn) {
-        return transactionRepository.filterTransactions(status, category, type, receiptAccountId, receiptCheckingAccountId,
-                        fromDate, toDate, minSum, maxSum, inn).stream()
+    public List<TransactionDto> filterTransactions(TransactionFilter filter) {
+        return transactionRepository.findAll(TransactionSpecification.withFilter(filter)).stream()
                 .map(transactionMapper::toDto)
                 .toList();
     }

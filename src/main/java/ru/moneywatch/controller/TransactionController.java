@@ -14,12 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import ru.moneywatch.model.dtos.TransactionDto;
 import ru.moneywatch.model.entities.TransactionEntity;
-import ru.moneywatch.model.enums.Category;
-import ru.moneywatch.model.enums.StatusOperation;
-import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.service.TransactionService;
+import ru.moneywatch.util.TransactionFilter;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -38,22 +35,10 @@ public class TransactionController {
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<List<TransactionDto>> getAllFilterTransactions(
-            @RequestParam(required = false) StatusOperation status,
-            @RequestParam(required = false) Category category,
-            @RequestParam(required = false) TypeTransaction type,
-            @RequestParam(required = false) Long receiptAccountId,
-            @RequestParam(required = false) Long receiptCheckingAccountId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate,
-            @RequestParam(required = false) Integer minSum,
-            @RequestParam(required = false) Integer maxSum,
-            @RequestParam(required = false) String inn
+    public ResponseEntity<List<TransactionDto>> getFilteredTransactions(
+            TransactionFilter filter
     ) {
-        return ResponseEntity.ok(
-                transactionService.getAllByFilter(status, category, type, receiptAccountId, receiptCheckingAccountId,
-                        fromDate, toDate, minSum, maxSum, inn)
-        );
+        return ResponseEntity.ok(transactionService.filterTransactions(filter));
     }
 
     @GetMapping("/{id}")
