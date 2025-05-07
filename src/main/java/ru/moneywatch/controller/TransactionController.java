@@ -2,7 +2,6 @@ package ru.moneywatch.controller;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import ru.moneywatch.model.dtos.TransactionDto;
@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Контроллер для работы с документами.
  */
-@Controller
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/transaction/")
 public class TransactionController {
@@ -33,8 +33,8 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @GetMapping
-    public List<TransactionDto> getAllTransactions() {
-        return transactionService.getAll();
+    public ResponseEntity<List<TransactionDto>> getAllTransactions() {
+        return ResponseEntity.ok(transactionService.getAll());
     }
 
     @GetMapping("/filter")
