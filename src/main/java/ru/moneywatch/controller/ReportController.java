@@ -1,19 +1,23 @@
 package ru.moneywatch.controller;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.moneywatch.model.dtos.TransactionStatsDto;
+import ru.moneywatch.model.enums.PeriodType;
 import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.repository.TransactionRepository;
 import ru.moneywatch.service.PdfReportService;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -98,6 +102,20 @@ public class ReportController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bank_statistics.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
+
+    @GetMapping("/transaction-dynamics")
+    public ResponseEntity<byte[]> getTransactionDynamicsReport(
+            @RequestParam PeriodType periodType,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) throws IOException {
+
+        byte[] pdf = pdfReportService.generateTransactionDynamicsReport(periodType, startDate, endDate);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=transaction_dynamics.pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }

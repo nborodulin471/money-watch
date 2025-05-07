@@ -2,6 +2,7 @@ package ru.moneywatch.service.impl;
 
 import com.lowagie.text.*;
 import com.lowagie.text.Font;
+import com.lowagie.text.Image;
 import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
@@ -9,20 +10,31 @@ import com.lowagie.text.pdf.PdfWriter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.data.category.CategoryDataset;
+import org.jfree.data.category.DefaultCategoryDataset;
 import org.springframework.stereotype.Service;
+import ru.moneywatch.model.dtos.TransactionDynamicsDto;
 import ru.moneywatch.model.dtos.TransactionStatsDto;
 import ru.moneywatch.model.entities.TransactionEntity;
 import ru.moneywatch.model.enums.Category;
+import ru.moneywatch.model.enums.PeriodType;
 import ru.moneywatch.model.enums.StatusOperation;
 import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.repository.TransactionRepository;
 import ru.moneywatch.service.PdfReportService;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -363,6 +375,140 @@ public class PdfReportServiceImpl implements PdfReportService {
 
         return out.toByteArray();
     }
+
+    @Override
+    public byte[] generateTransactionDynamicsReport(PeriodType periodType, Date startDate, Date endDate) throws IOException {
+        // Получаем данные из репозитория
+        List<Object[]> rawData = transactionRepository.getTransactionCountByPeriod(
+                periodType.toString(),
+                startDate,
+                endDate
+        );
+
+        // Преобразуем в DTO
+        List<TransactionDynamicsDto> stats = rawData.stream()
+                .map(arr -> new TransactionDynamicsDto(
+                        (String) arr[0],
+                        (Long) arr[1]
+                ))
+                .collect(Collectors.toList());
+
+        // Создаем PDF документ
+        Document document = new Document(PageSize.A4.rotate());
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        try {
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            // Заголовок отчета
+            addTitle(document, "Transaction Dynamics Report", startDate, endDate);
+
+            // Подзаголовок с типом периода
+            addPeriodSubtitle(document, periodType);
+
+            // Создаем таблицу
+            PdfPTable table = createDynamicsTable(stats);
+            document.add(table);
+
+            // Добавляем график
+            addChart(document, stats, periodType);
+
+        } finally {
+            document.close();
+        }
+
+        return out.toByteArray();
+    }
+
+    private void addChart(Document document, List<TransactionDynamicsDto> stats, PeriodType periodType)
+            throws DocumentException {
+        try {
+            // Создаем dataset из списка DTO
+            DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+            stats.forEach(dto ->
+                    dataset.addValue(dto.getTransactionCount(), "Transactions", dto.getPeriod())
+            );
+
+            // Создаем график
+            JFreeChart chart = ChartFactory.createBarChart(
+                    "Transaction Dynamics (" + periodType + ")",
+                    "Period",
+                    "Number of Transactions",
+                    dataset
+            );
+
+            // Настройки внешнего вида графика
+            chart.setBackgroundPaint(Color.WHITE);
+            CategoryPlot plot = chart.getCategoryPlot();
+            plot.setBackgroundPaint(Color.LIGHT_GRAY);
+            plot.setDomainGridlinePaint(Color.WHITE);
+            plot.setRangeGridlinePaint(Color.WHITE);
+
+            // Конвертируем график в изображение
+            BufferedImage chartImage = chart.createBufferedImage(500, 300);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(chartImage, "PNG", baos);
+
+            // Добавляем изображение в PDF
+            Image chartPdf = Image.getInstance(baos.toByteArray());
+            chartPdf.setAlignment(Image.ALIGN_CENTER);
+            chartPdf.scaleToFit(500, 300);
+            document.add(chartPdf);
+
+        } catch (Exception ignored) {
+        }
+    }
+
+    private CategoryDataset createDataset(Map<String, Long> data) {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        data.forEach((period, count) -> {
+            dataset.addValue(count, "Transactions", period);
+        });
+        return dataset;
+    }
+
+    private void addTitle(Document document, String title, Date startDate, Date endDate) throws DocumentException {
+        Paragraph mainTitle = new Paragraph(title, titleFont);
+        mainTitle.setAlignment(Element.ALIGN_CENTER);
+        document.add(mainTitle);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy");
+        String period = sdf.format(startDate) + " - " + sdf.format(endDate);
+
+        Paragraph periodParagraph = new Paragraph(period, headerFont);
+        periodParagraph.setAlignment(Element.ALIGN_CENTER);
+        periodParagraph.setSpacingAfter(20f);
+        document.add(periodParagraph);
+    }
+
+    private void addPeriodSubtitle(Document document, PeriodType periodType) throws DocumentException {
+        String periodTitle = "Grouped by: " + periodType.toString().toLowerCase();
+        Paragraph periodParagraph = new Paragraph(periodTitle, headerFont);
+        periodParagraph.setAlignment(Element.ALIGN_CENTER);
+        periodParagraph.setSpacingAfter(15f);
+        document.add(periodParagraph);
+    }
+
+    private PdfPTable createDynamicsTable(List<TransactionDynamicsDto> stats) {
+        PdfPTable table = new PdfPTable(2);
+        table.setWidthPercentage(80);
+        table.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.setSpacingBefore(10f);
+
+        // Заголовки таблицы
+        addTableHeader(table, "Period", headerFont);
+        addTableHeader(table, "Transaction Count", headerFont);
+
+        // Заполняем таблицу данными
+        stats.forEach(dto -> {
+            addTableCell(table, dto.getPeriod(), contentFont);
+            addTableCell(table, dto.getTransactionCount().toString(), contentFont);
+        });
+
+        return table;
+    }
+
 
     private PdfPTable createBankStatsTable(List<Object[]> stats, Font headerFont, Font contentFont) {
         PdfPTable table = new PdfPTable(3);

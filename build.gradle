@@ -32,6 +32,9 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
     implementation 'jakarta.validation:jakarta.validation-api'
     implementation("com.github.librepdf:openpdf:2.0.3")
+    implementation 'org.jfree:jfreechart:1.5.3'
+    implementation 'org.jfree:jcommon:1.0.24'
+    implementation 'com.github.jai-imageio:jai-imageio-core:1.4.0'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
