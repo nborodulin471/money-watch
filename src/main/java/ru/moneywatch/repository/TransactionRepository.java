@@ -65,7 +65,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
 
     // Статистика по банкам-отправителям
     @Query("SELECT b.name, COUNT(t), SUM(t.sum) " +
-            "FROM TransactionEntity t JOIN t.bankAccount.bank b " +
+            "FROM TransactionEntity t JOIN t.userAccount a JOIN a.bank b " +
             "GROUP BY b.name")
     List<Object[]> getStatsBySenderBank();
 
