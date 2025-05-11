@@ -1,9 +1,7 @@
 package ru.moneywatch.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import ru.moneywatch.model.dtos.AccountDto;
 import ru.moneywatch.model.mappers.AccountMapper;
 import ru.moneywatch.service.AccountService;
+import ru.moneywatch.service.auth.UserService;
 
 import java.util.List;
 
@@ -26,12 +25,13 @@ public class AccountController {
 
     private final AccountService accountService;
     private final AccountMapper accountMapper;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<List<AccountDto>> findAll() {
         return
                 ResponseEntity.ok(
-                        accountService.findAll().stream().map(
+                        accountService.findAll(userService.getCurrentUser().getId()).stream().map(
                                 accountMapper::toDto
                         ).toList()
                 );
@@ -44,10 +44,4 @@ public class AccountController {
                         accountMapper.toDto(accountService.create(bankDto))
                 );
     }
-
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        accountService.delete(id);
-    }
-
 }

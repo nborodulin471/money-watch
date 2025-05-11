@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import ru.moneywatch.model.dtos.TransactionDto;
 import ru.moneywatch.model.entities.TransactionEntity;
 import ru.moneywatch.repository.AccountRepository;
+import ru.moneywatch.repository.UserRepository;
 
 /**
  * Маппер для транзакций.
@@ -15,6 +16,7 @@ import ru.moneywatch.repository.AccountRepository;
 public class TransactionMapper {
 
     private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
 
     public TransactionDto toDto(TransactionEntity entity) {
         if (entity == null) {
@@ -29,6 +31,7 @@ public class TransactionMapper {
                 .status(entity.getStatus())
                 .userAccountId(entity.getUserAccount().getId())
                 .bankAccountId(entity.getBankAccount().getId())
+                .userId(entity.getId())
                 .category(entity.getCategory())
                 .build();
     }
@@ -46,6 +49,7 @@ public class TransactionMapper {
         entity.setStatus(dto.status());
         entity.setUserAccount(accountRepository.findById(dto.userAccountId()).orElseThrow());
         entity.setBankAccount(accountRepository.findById(dto.bankAccountId()).orElseThrow());
+        entity.setUser(userRepository.findById(dto.userId()).orElseThrow());
         entity.setCategory(dto.category());
 
         return entity;

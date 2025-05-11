@@ -59,4 +59,6 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
             ORDER BY MIN(t.date)
             """, nativeQuery = true)
     List<Object[]> getTransactionCountByPeriod(String periodType, Date startDate, Date endDate);
+
+    List<TransactionEntity> findAllById(long id);
 }

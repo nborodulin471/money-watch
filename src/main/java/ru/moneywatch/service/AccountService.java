@@ -8,7 +8,6 @@ import ru.moneywatch.model.dtos.AccountDto;
 import ru.moneywatch.model.entities.AccountEntity;
 import ru.moneywatch.model.mappers.AccountMapper;
 import ru.moneywatch.repository.AccountRepository;
-import ru.moneywatch.service.auth.UserService;
 
 import java.util.List;
 
@@ -21,11 +20,9 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final AccountMapper accountMapper;
-    private final UserService userService;
 
-    public List<AccountEntity> findAll() {
-        var id = userService.getCurrentUser().getId();
-        return accountRepository.findAllByUserId(id);
+    public List<AccountEntity> findAll(Long userId) {
+        return accountRepository.findAllByUserId(userId);
     }
 
     public AccountEntity create(AccountDto dto) {

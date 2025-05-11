@@ -33,5 +33,7 @@ public record TransactionDto(
 
         long bankAccountId,
 
+        long userId,
+
         Category category) {
 }

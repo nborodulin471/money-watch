@@ -42,4 +42,7 @@ public class TransactionEntity {
     @Enumerated(EnumType.STRING)
     private Category category;
 
+    @ManyToOne
+    private User user;
+
 }

@@ -15,6 +15,11 @@ public interface TransactionService {
     /**
      * Возвращает все транзакции.
      */
+    List<TransactionDto> getAllByUser(long userId);
+
+    /**
+     * Возвращает все транзакции.
+     */
     List<TransactionDto> getAll();
 
     /**

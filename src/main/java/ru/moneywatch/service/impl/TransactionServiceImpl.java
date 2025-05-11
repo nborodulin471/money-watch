@@ -5,11 +5,14 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import ru.moneywatch.model.dtos.TransactionDto;
+import ru.moneywatch.model.entities.Role;
 import ru.moneywatch.model.entities.TransactionEntity;
+import ru.moneywatch.model.enums.StatusOperation;
 import ru.moneywatch.model.mappers.TransactionMapper;
 import ru.moneywatch.repository.AccountRepository;
 import ru.moneywatch.repository.TransactionRepository;
 import ru.moneywatch.service.TransactionService;
+import ru.moneywatch.service.auth.UserService;
 import ru.moneywatch.util.TransactionFilter;
 import ru.moneywatch.util.TransactionSpecification;
 
@@ -25,10 +28,18 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
     private final TransactionMapper transactionMapper;
+    private final UserService userService;
 
     @Override
     public List<TransactionDto> getAll() {
         return transactionRepository.findAll().stream()
+                .map(transactionMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public List<TransactionDto> getAllByUser(long userId) {
+        return transactionRepository.findAllById(userId).stream()
                 .map(transactionMapper::toDto)
                 .toList();
     }
@@ -51,6 +62,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public TransactionDto create(TransactionDto document) {
         var documentEntity = transactionMapper.toEntity(document);
+        documentEntity.setStatus(StatusOperation.NEW);
 
         return transactionMapper.toDto(
                 transactionRepository.save(documentEntity)
@@ -67,8 +79,12 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private TransactionEntity updateTransactionFields(TransactionEntity transaction, TransactionDto req) {
+        var user = userService.getCurrentUser();
+        if (user.getRole() == Role.ROLE_ADMIN) {
+            transaction.setStatus(req.status());
+        }
+
         transaction.setDate(req.date());
-        transaction.setStatus(req.status());
         transaction.setTypeTransaction(req.typeTransaction());
         transaction.setComment(req.comment());
         transaction.setSum(req.sum());

@@ -12,6 +12,8 @@ import ru.moneywatch.model.entities.User;
 import ru.moneywatch.model.mappers.UserMapper;
 import ru.moneywatch.repository.UserRepository;
 
+import java.util.List;
+
 /**
  * Сервис для работы с пользователями
  */
@@ -58,5 +60,11 @@ public class UserService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
 
+    }
+
+    public List<UserDto> findAll() {
+        return userRepository.findAll().stream()
+                .map(userMapper::toDto)
+                .toList();
     }
 }
