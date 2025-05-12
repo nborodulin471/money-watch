@@ -69,6 +69,10 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionDto create(TransactionDto document) {
         var documentEntity = transactionMapper.toEntity(document);
         documentEntity.setStatus(StatusOperation.NEW);
+        var user = userService.getCurrentUser();
+        if (user.getRole() == Role.ROLE_ADMIN) {
+            documentEntity.setUser(userService.getCurrentUser());
+        }
 
         return transactionMapper.toDto(
                 transactionRepository.save(documentEntity)

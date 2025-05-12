@@ -49,7 +49,11 @@ public class TransactionMapper {
         entity.setStatus(dto.status());
         entity.setUserAccount(accountRepository.findById(dto.userAccountId()).orElseThrow());
         entity.setBankAccount(accountRepository.findById(dto.bankAccountId()).orElseThrow());
-        entity.setUser(userRepository.findById(dto.userId()).orElseThrow());
+
+        if (dto.userId() != 0){
+            entity.setUser(userRepository.findById(dto.userId()).orElseThrow());
+        }
+
         entity.setCategory(dto.category());
 
         return entity;
