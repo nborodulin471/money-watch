@@ -7,11 +7,8 @@ import com.itextpdf.layout.element.Image;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import org.springframework.stereotype.Service;
 import ru.moneywatch.model.dtos.TransactionDynamicsDto;
-import ru.moneywatch.model.dtos.TransactionStatsDto;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 
 @Service

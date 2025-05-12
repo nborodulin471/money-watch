@@ -81,7 +81,7 @@ public class ReportController {
     }
 
     @GetMapping("/transaction-amount-chart")
-    public ResponseEntity<byte[]> getTransactionsReportWithChart() throws IOException {
+    public ResponseEntity<byte[]> getTransactionsReportWithChart() {
         byte[] pdf = pdfReportServiceG.generateCompletedAndReturnedTransactionsPdf();
 
         return ResponseEntity.ok()
@@ -187,7 +187,7 @@ public class ReportController {
     public ResponseEntity<byte[]> getTransactionDynamicsReport(
             @RequestParam PeriodType periodType,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
-            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) throws IOException {
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
 
         // Получаем данные из репозитория (например, по месяцам)
         List<Object[]> rawData = transactionRepository.getTransactionCountByPeriod(
