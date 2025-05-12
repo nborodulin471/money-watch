@@ -1,6 +1,7 @@
 package ru.moneywatch.controller;
 
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -36,7 +37,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> showRegistrationForm(@RequestBody UserDto user) {
+    public ResponseEntity<?> showRegistrationForm(@Valid @RequestBody UserDto user) {
         authenticationService.registerNewUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body("Аккаунт успешно зарегистрирован.");
     }

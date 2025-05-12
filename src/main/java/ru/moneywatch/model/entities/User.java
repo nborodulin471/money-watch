@@ -1,6 +1,7 @@
 package ru.moneywatch.model.entities;
 
 import jakarta.persistence.*;
+import lombok.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,8 +22,10 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NonNull
     private String username;
 
+    @NonNull
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -34,6 +37,7 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private PersonType personType;
 
+    @NonNull
     private String inn;
 
     @Override

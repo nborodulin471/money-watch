@@ -33,6 +33,8 @@ public class UserMapper {
         user.setUsername(userDto.getUsername());
         user.setPassword(userDto.getPassword());
         user.setRole(Role.valueOf(userDto.getRole()));
+        user.setInn(userDto.getInn());
+        user.setPersonType(userDto.getPersonType());
 
         return user;
     }
