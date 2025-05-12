@@ -5,17 +5,20 @@ import com.itextpdf.layout.Document;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.kernel.pdf.PdfWriter;
+import org.springframework.stereotype.Service;
 import ru.moneywatch.model.dtos.TransactionDynamicsDto;
 import ru.moneywatch.model.dtos.TransactionStatsDto;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
+@Service
 public class PDFService {
 
 
-    public byte[] generatePDFWithTwoCharts(byte[] chart1, byte[] chart2) throws IOException {
+    public byte[] generatePDFWithTwoCharts(byte[] chart1, byte[] chart2) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         PdfWriter writer = new PdfWriter(baos);
@@ -36,7 +39,7 @@ public class PDFService {
         return baos.toByteArray();
     }
 
-    public byte[] generatePDFWithTitleAndChart(String title, List<TransactionDynamicsDto> stats, byte[] chartImage) throws IOException {
+    public byte[] generatePDFWithTitleAndChart(String title, List<TransactionDynamicsDto> stats, byte[] chartImage) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PdfWriter writer = new PdfWriter(baos);
         PdfDocument pdf = new PdfDocument(writer);
@@ -59,7 +62,7 @@ public class PDFService {
         document.close();
         return baos.toByteArray();
     }
-    public byte[] generatePDFWithTitleAndChartForStats(String title, List<TransactionStatsDto> stats, byte[] chartImage) throws IOException {
+    public byte[] generatePDFWithTitleAndChartForStats(String title, Number total, byte[] chartImage) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PdfWriter writer = new PdfWriter(baos);
         PdfDocument pdf = new PdfDocument(writer);
@@ -74,8 +77,7 @@ public class PDFService {
         document.add(image);
 
         // Итоговая сумма
-        long total = stats.stream().mapToLong(TransactionStatsDto::getCount).sum();
-        document.add(new Paragraph("Total Transactions: " + total));
+        document.add(new Paragraph("Total: " + total));
 
         document.close();
         return baos.toByteArray();

@@ -4,10 +4,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import ru.moneywatch.model.TransactionStats;
 import ru.moneywatch.model.dtos.TransactionDto;
 import ru.moneywatch.model.entities.Role;
 import ru.moneywatch.model.entities.TransactionEntity;
+import ru.moneywatch.model.enums.Category;
 import ru.moneywatch.model.enums.StatusOperation;
+import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.model.mappers.TransactionMapper;
 import ru.moneywatch.repository.AccountRepository;
 import ru.moneywatch.repository.TransactionRepository;
@@ -16,7 +19,10 @@ import ru.moneywatch.service.auth.UserService;
 import ru.moneywatch.util.TransactionFilter;
 import ru.moneywatch.util.TransactionSpecification;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Реализация сервиса для работы с транзакциями.
@@ -98,5 +104,42 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public void deleteById(Long id) {
         transactionRepository.deleteById(id);
+    }
+
+    public Map<Category, Map<TypeTransaction, BigDecimal>> getCategoryStats() {
+        // Получаем данные из БД
+        List<Object[]> stats = transactionRepository.getSumsByCategoryAndType();
+
+        // Группируем данные по категориям
+        return stats.stream()
+                .collect(Collectors.groupingBy(
+                        arr -> (Category) arr[0],
+                        Collectors.toMap(
+                                arr -> (TypeTransaction) arr[1],
+                                arr -> (BigDecimal) arr[2]
+                        )
+                ));
+    }
+
+    public Map<TypeTransaction, TransactionStats> getTransactionStatsByType() {
+        return transactionRepository.getTransactionStatsByType()
+                .stream()
+                .collect(Collectors.toMap(
+                        arr -> (TypeTransaction) arr[0],
+                        arr -> new TransactionStats((Long) arr[1], (BigDecimal) arr[2])
+                ));
+    }
+
+    public Map<StatusOperation, Long> getCompletedAndReturnedTransactionsStats() {
+        // Получаем данные из репозитория
+        List<TransactionEntity> transactions = transactionRepository.findAll();
+
+        // Фильтруем и группируем транзакции по статусам
+        return transactions.stream()
+                .filter(t -> t.getStatus() == StatusOperation.COMPLETED || t.getStatus() == StatusOperation.RETURN)
+                .collect(Collectors.groupingBy(
+                        TransactionEntity::getStatus,
+                        Collectors.counting()
+                ));
     }
 }

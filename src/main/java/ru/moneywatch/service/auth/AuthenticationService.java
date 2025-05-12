@@ -25,6 +25,10 @@ public class AuthenticationService {
     private final UserMapper userMapper;
 
     public UserDto registerNewUser(UserDto user) {
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new RuntimeException("Пользователь с таким именем уже существует");
+        }
+
         if (userRepository.existsByInn(user.getInn())) {
             throw new RuntimeException("Пользователь с таким ИНН уже существует");
         }

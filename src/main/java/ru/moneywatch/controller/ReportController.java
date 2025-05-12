@@ -1,5 +1,6 @@
 package ru.moneywatch.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -24,18 +25,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/reports")
 public class ReportController {
 
     private final TransactionRepository transactionRepository;
     private final PdfReportService pdfReportService;
+    private final PdfReportServiceG pdfReportServiceG;
 
-    public ReportController(TransactionRepository transactionRepository, PdfReportService pdfReportService) {
-        this.transactionRepository = transactionRepository;
-        this.pdfReportService = pdfReportService;
-    }
-
-    @GetMapping(value = "/transaction-stats2", produces = MediaType.APPLICATION_PDF_VALUE)
+    @GetMapping(value = "/transaction-stats", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> getTransactionStatsPdf2() {
         try {
             List<TransactionStatsDto> stats = getMonthlyStats();
@@ -52,11 +50,12 @@ public class ReportController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    @GetMapping(value = "/transaction-stats", produces = MediaType.APPLICATION_PDF_VALUE)
+
+    @GetMapping(value = "/transaction-stats-chart", produces = MediaType.APPLICATION_PDF_VALUE)
     public ResponseEntity<byte[]> getTransactionStatsPdf() {
         try {
             List<TransactionStatsDto> stats = getMonthlyStats();
-            byte[] pdfBytes = PdfReportServiceG.generateTransactionStatsPdf(stats);
+            byte[] pdfBytes = pdfReportServiceG.generateTransactionStatsPdf(stats);
 
             HttpHeaders headers = new HttpHeaders();
             headers.add("Content-Disposition", "inline; filename=transaction-stats.pdf");
@@ -81,9 +80,29 @@ public class ReportController {
                 .body(pdf);
     }
 
+    @GetMapping("/transaction-amount-chart")
+    public ResponseEntity<byte[]> getTransactionsReportWithChart() throws IOException {
+        byte[] pdf = pdfReportServiceG.generateCompletedAndReturnedTransactionsPdf();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=transactions_report.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
+
     @GetMapping("/transaction-sum")
     public ResponseEntity<byte[]> getTransactionTypesReport() throws IOException {
         byte[] pdf = pdfReportService.generateTransactionSumReport();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=transaction_types_report.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
+    }
+
+    @GetMapping("/transaction-sum-chart")
+    public ResponseEntity<byte[]> getTransactionTypesReportWithChart() {
+        byte[] pdf = pdfReportServiceG.generateTransactionSumPdf();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=transaction_types_report.pdf")
@@ -99,6 +118,16 @@ public class ReportController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=category_summary.pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
+    }
+
+    @GetMapping("/category-summary-chart")
+    public ResponseEntity<byte[]> getCategorySummaryReportWithChart() {
+        byte[] pdfWithChart = pdfReportServiceG.generateCategorySummaryPdf();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=category_summary.pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfWithChart);
     }
 
     public List<TransactionStatsDto> getMonthlyStats() {
@@ -117,7 +146,7 @@ public class ReportController {
         return result;
     }
 
-    @GetMapping("/bank-stats2")
+    @GetMapping("/bank-stats")
     public ResponseEntity<byte[]> getBankStatsReport2() throws IOException {
         byte[] pdf = pdfReportService.generateBankStatsReport();
 
@@ -127,12 +156,12 @@ public class ReportController {
                 .body(pdf);
     }
 
-    @GetMapping("/bank-stats")
-    public ResponseEntity<byte[]> getBankStatsReport() throws IOException {
+    @GetMapping("/bank-stats-chart")
+    public ResponseEntity<byte[]> getBankStatsReport() {
         List<Object[]> senderStats = transactionRepository.getStatsBySenderBank();
         List<Object[]> recipientStats = transactionRepository.getStatsByRecipientBank();
 
-        byte[] pdf = PdfReportServiceG.generateBankStatsReport(senderStats, recipientStats);
+        byte[] pdf = pdfReportServiceG.generateBankStatsReport(senderStats, recipientStats);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=bank_statistics.pdf")
@@ -140,7 +169,7 @@ public class ReportController {
                 .body(pdf);
     }
 
-    @GetMapping("/transaction-dynamics2")
+    @GetMapping("/transaction-dynamic")
     public ResponseEntity<byte[]> getTransactionDynamicsReport2(
             @RequestParam PeriodType periodType,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
@@ -154,7 +183,7 @@ public class ReportController {
                 .body(pdf);
     }
 
-    @GetMapping("/transaction-dynamics")
+    @GetMapping("/transaction-dynamics-chart")
     public ResponseEntity<byte[]> getTransactionDynamicsReport(
             @RequestParam PeriodType periodType,
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
@@ -174,7 +203,7 @@ public class ReportController {
         String title = String.format("Transaction Dynamics (%s) from %tF to %tF", periodType, startDate, endDate);
 
         // Генерируем PDF с графиком
-        byte[] pdf = PdfReportServiceG.generateTransactionDynamicsReport(stats, title);
+        byte[] pdf = pdfReportServiceG.generateTransactionDynamicsReport(stats, title);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=transaction_dynamics.pdf")

@@ -16,6 +16,7 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.springframework.stereotype.Service;
+import ru.moneywatch.model.TransactionStats;
 import ru.moneywatch.model.dtos.TransactionDynamicsDto;
 import ru.moneywatch.model.dtos.TransactionStatsDto;
 import ru.moneywatch.model.entities.TransactionEntity;
@@ -25,6 +26,7 @@ import ru.moneywatch.model.enums.StatusOperation;
 import ru.moneywatch.model.enums.TypeTransaction;
 import ru.moneywatch.repository.TransactionRepository;
 import ru.moneywatch.service.PdfReportService;
+import ru.moneywatch.service.TransactionService;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -44,13 +46,14 @@ import java.util.stream.Collectors;
 public class PdfReportServiceImpl implements PdfReportService {
 
     private final TransactionRepository transactionRepository;
+    private final TransactionService transactionService;
 
     private final Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18);
     private final Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
     private final Font contentFont = FontFactory.getFont(FontFactory.HELVETICA, 10);
 
     @Override
-    public byte[] generateTransactionStatsPdf(List<TransactionStatsDto> stats) throws IOException {
+    public byte[] generateTransactionStatsPdf(List<TransactionStatsDto> stats) {
         Document document = new Document(PageSize.A4);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -94,17 +97,9 @@ public class PdfReportServiceImpl implements PdfReportService {
     }
 
     @Override
-    public byte[] generateCompletedAndReturnTransactionsReport() throws IOException {
+    public byte[] generateCompletedAndReturnTransactionsReport() {
         // Получаем данные из репозитория
-        List<TransactionEntity> transactions = transactionRepository.findAll();
-
-        // Фильтруем и группируем транзакции по статусам
-        Map<StatusOperation, Long> stats = transactions.stream()
-                .filter(t -> t.getStatus() == StatusOperation.COMPLETED || t.getStatus() == StatusOperation.RETURN)
-                .collect(Collectors.groupingBy(
-                        TransactionEntity::getStatus,
-                        Collectors.counting()
-                ));
+        Map<StatusOperation, Long> stats = transactionService.getCompletedAndReturnedTransactionsStats();
 
         // Создаем документ PDF
         Document document = new Document(PageSize.A4);
@@ -163,14 +158,9 @@ public class PdfReportServiceImpl implements PdfReportService {
     }
 
     @Override
-    public byte[] generateTransactionSumReport() throws IOException {
+    public byte[] generateTransactionSumReport() {
         // Получаем статистику из БД
-        Map<TypeTransaction, TransactionStats> stats = transactionRepository.getTransactionStatsByType()
-                .stream()
-                .collect(Collectors.toMap(
-                        arr -> (TypeTransaction) arr[0],
-                        arr -> new TransactionStats((Long) arr[1], (BigDecimal) arr[2])
-                ));
+        Map<TypeTransaction, TransactionStats> stats = transactionService.getTransactionStatsByType();
 
         // Создаем PDF документ
         Document document = new Document(PageSize.A4);
@@ -253,19 +243,10 @@ public class PdfReportServiceImpl implements PdfReportService {
     }
 
     @Override
-    public byte[] generateCategorySummaryReport() throws IOException {
-        // Получаем данные из БД
-        List<Object[]> results = transactionRepository.getSumsByCategoryAndType();
+    public byte[] generateCategorySummaryReport() {
 
         // Группируем данные по категориям
-        Map<Category, Map<TypeTransaction, BigDecimal>> categoryStats = results.stream()
-                .collect(Collectors.groupingBy(
-                        arr -> (Category) arr[0],
-                        Collectors.toMap(
-                                arr -> (TypeTransaction) arr[1],
-                                arr -> (BigDecimal) arr[2]
-                        )
-                ));
+        Map<Category, Map<TypeTransaction, BigDecimal>> categoryStats = transactionService.getCategoryStats();
 
         // Создаем PDF документ
         Document document = new Document(PageSize.A4.rotate()); // Горизонтальная ориентация
@@ -330,7 +311,7 @@ public class PdfReportServiceImpl implements PdfReportService {
     }
 
     @Override
-    public byte[] generateBankStatsReport() throws IOException {
+    public byte[] generateBankStatsReport() {
         // Получаем данные из БД
         List<Object[]> senderStats = transactionRepository.getStatsBySenderBank();
         List<Object[]> recipientStats = transactionRepository.getStatsByRecipientBank();
@@ -377,7 +358,7 @@ public class PdfReportServiceImpl implements PdfReportService {
     }
 
     @Override
-    public byte[] generateTransactionDynamicsReport(PeriodType periodType, Date startDate, Date endDate) throws IOException {
+    public byte[] generateTransactionDynamicsReport(PeriodType periodType, Date startDate, Date endDate) {
         // Получаем данные из репозитория
         List<Object[]> rawData = transactionRepository.getTransactionCountByPeriod(
                 periodType.toString(),
@@ -655,12 +636,5 @@ public class PdfReportServiceImpl implements PdfReportService {
         cell = new PdfPCell(new Phrase(formatMoney(totalSum), font));
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
-    }
-
-    @Data
-    @AllArgsConstructor
-    private static class TransactionStats {
-        private Long count;
-        private BigDecimal sum;
     }
 }
