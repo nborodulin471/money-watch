@@ -409,6 +409,10 @@ _Источник:_ `ReportController`
 
 GitHub: [https://github.com/nborodulin471/money-watch](https://github.com/nborodulin471/money-watch)  
 
+[System Analyst's WorkBook](https://clck.ru/3LomQp)  
+
+[WorkDataTableTeam](https://clck.ru/3LokiY) 
+
 ---
 
 ## Права на использование
